@@ -3,9 +3,7 @@ import time
 from collections import OrderedDict
 from typing import Iterable, List, Sequence, Tuple
 
-
 Query = Tuple[str, int, int]
-
 
 class LRUCache:
     def __init__(self, capacity: int = 1000):
@@ -28,17 +26,13 @@ class LRUCache:
         if len(self.cache) > self.capacity:
             self.cache.popitem(last=False)
 
-
 cache = LRUCache(capacity=1000)
-
 
 def range_sum_no_cache(array: Sequence[int], left: int, right: int) -> int:
     return sum(array[left : right + 1])
 
-
 def update_no_cache(array: List[int], index: int, value: int) -> None:
     array[index] = value
-
 
 def range_sum_with_cache(array: Sequence[int], left: int, right: int) -> int:
     key = (left, right)
@@ -51,7 +45,6 @@ def range_sum_with_cache(array: Sequence[int], left: int, right: int) -> int:
     cache.put(key, result)
     return result
 
-
 def update_with_cache(array: List[int], index: int, value: int) -> None:
     array[index] = value
 
@@ -61,35 +54,23 @@ def update_with_cache(array: List[int], index: int, value: int) -> None:
     for key in keys_to_remove:
         del cache.cache[key]
 
-
-def make_queries(
-    n: int,
-    q: int,
-    hot_pool: int = 30,
-    p_hot: float = 0.95,
-    p_update: float = 0.03,
-) -> list[Query]:
-    hot = [
-        (random.randint(0, n // 2), random.randint(n // 2, n - 1))
-        for _ in range(hot_pool)
-    ]
-
+def make_queries(n, q, hot_pool=30, p_hot=0.95, p_update=0.03):
+    hot = [(random.randint(0, n//2), random.randint(n//2, n-1))
+           for _ in range(hot_pool)]
     queries = []
     for _ in range(q):
-        if random.random() < p_update:
-            idx = random.randint(0, n - 1)
+        if random.random() < p_update:        # ~3% запитів — Update
+            idx = random.randint(0, n-1)
             val = random.randint(1, 100)
             queries.append(("Update", idx, val))
-        else:
-            if random.random() < p_hot:
+        else:                                 # ~97% — Range
+            if random.random() < p_hot:       # 95% — «гарячі» діапазони
                 left, right = random.choice(hot)
-            else:
-                left = random.randint(0, n - 1)
-                right = random.randint(left, n - 1)
+            else:                             # 5% — випадкові діапазони
+                left = random.randint(0, n-1)
+                right = random.randint(left, n-1)
             queries.append(("Range", left, right))
-
     return queries
-
 
 def run_no_cache(array: List[int], queries: Iterable[Query]) -> int:
     checksum = 0
@@ -99,9 +80,7 @@ def run_no_cache(array: List[int], queries: Iterable[Query]) -> int:
             checksum += range_sum_no_cache(array, first, second)
         else:
             update_no_cache(array, first, second)
-
     return checksum
-
 
 def run_with_cache(array: List[int], queries: Iterable[Query]) -> int:
     checksum = 0
@@ -111,16 +90,13 @@ def run_with_cache(array: List[int], queries: Iterable[Query]) -> int:
             checksum += range_sum_with_cache(array, first, second)
         else:
             update_with_cache(array, first, second)
-
     return checksum
-
 
 def measure_time(func, array: List[int], queries: list[Query]) -> tuple[float, int]:
     started_at = time.perf_counter()
     checksum = func(array, queries)
     elapsed = time.perf_counter() - started_at
     return elapsed, checksum
-
 
 def main() -> None:
     n = 100_000
@@ -155,7 +131,6 @@ def main() -> None:
     print()
     print(f"Без кешу : {no_cache_time:7.2f} c")
     print(f"LRU-кеш  : {cache_time:7.2f} c  (прискорення x{speedup:.1f})")
-
 
 if __name__ == "__main__":
     main()
